@@ -2,13 +2,9 @@ import "@/styles/globals.css"
 
 import { Inter as FontSans } from "next/font/google"
 import localFont from "next/font/local"
-import { ClerkProvider } from "@clerk/nextjs"
-
 import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
-import { Analytics } from "@/components/analytics"
-import { CSPostHogProvider } from "@/components/analytics-provider"
 import { Providers } from "@/components/providers"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 
@@ -79,25 +75,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <CSPostHogProvider>
-          <body
-            className={cn(
-              "min-h-screen bg-background font-sans antialiased",
-              fontSans.variable,
-              fontHeading.variable
-            )}
-          >
-            <Providers>
-              {children}
-              <Analytics />
-              <Toaster />
-              <TailwindIndicator />
-            </Providers>
-          </body>
-        </CSPostHogProvider>
-      </html>
-    </ClerkProvider>
+    <html lang="it">
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable,
+          fontHeading.variable
+        )}
+      >
+        <Providers>
+          {children}
+          <Toaster />
+          <TailwindIndicator />
+        </Providers>
+      </body>
+    </html>
   )
 }

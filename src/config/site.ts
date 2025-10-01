@@ -1,14 +1,14 @@
 import { SiteConfig } from "@/types"
 
 export const siteConfig: SiteConfig = {
-  name: "Scribbly",
+  name: "Diario",
   description:
-    "Scribbly is a web application that provides a platform for users to create and manage their digital journal. With Scribbly, users can easily jot down their thoughts, experiences, and ideas, and organize them in a personal and customizable journal.",
-  url: "https://scribbly.subhambharadwaz.com",
-  ogImage: "https://scribbly.subhambharadwaz.com/og.jpg",
+    "Modulo journaling in Next.js pronto per essere montato come route privata con editor a blocchi, calendario e filtri.",
+  url: "https://example.com",
+  ogImage: "https://example.com/og.jpg",
   links: {
-    twitter: "https://twitter.com/webhashira",
-    github: "https://github.com/subhamBharadwaz",
-    linkedin: "https://www.linkedin.com/in/subham-bharadwaz-5a9792197/",
+    twitter: "https://twitter.com/",
+    github: "https://github.com/",
+    linkedin: "https://www.linkedin.com/",
   },
 }

@@ -1,71 +1,98 @@
-# Scribbly
+# Diario
 
-## An open source Journal Web App
+Modulo journaling basato su Next.js pensato per essere montato all'interno di un progetto esistente. L'app è stata snellita per
+l'utilizzo come route `/journal`: niente landing, subscription o provider esterni, solo editor a blocchi, calendario e CRUD delle
+entry.
 
-![Scribbly Landing Page](https://github.com/subhamBharadwaz/scribbly/assets/72348711/23644c37-78c3-40ac-beef-a94c1cd5cfd3)
+## Requisiti principali
 
-## About this project
+- **Next.js 14** con App Router
+- **Prisma** con database Postgres compatibile (es. Vercel Postgres)
+- **Tailwind CSS** + componenti shadcn/ui
+- Editor a blocchi con **Editor.js** (salvataggio in JSON)
+- Autenticazione di sviluppo tramite adattatore pluggable
 
-Scribbly is a web application that provides a platform for users to create and manage their digital journal. With Scribbly, users can easily jot down their thoughts, experiences, and ideas, and organize them in a personal and customizable journal.
+## Setup
 
-- **Digital Journaling**: Users can create and store their journal entries online, eliminating the need for physical notebooks or papers.
-- **User-Friendly Interface**: Scribbly offers a clean and intuitive user interface, powered by Radix UI and Shadcn/UI components, making it easy for users to navigate and interact with their journal.
-- **Secure and Private**: Scribbly prioritizes user data security and privacy, ensuring that journal entries are kept confidential and protected.
-- **Subscription Plan**: Scribbly offers a monthly subscription plan that provides users with additional features and benefits.
-- **Reminder Feature**: The reminder feature is a valuable addition to Scribbly. By sending reminder emails to users who have activated this option every day at 9 pm, you help users stay consistent with their journaling habit and make it a part of their daily routine.
+1. Installare le dipendenze (pnpm):
 
-## Features
+   ```sh
+   pnpm install
+   ```
 
-- Next.js `/app` dir,
-- Routing, Layouts, Nested Layouts and Layout Groups
-- Data Fetching, Caching and Mutation using **TanStack Query**
-- Route handlers
-- Metadata files
-- Server and Client Components
-- API Routes and Middleware
-- Authentication using **Clerk**
-- Block-Style editor with **Editor.js**
-- ORM using **Prisma**
-- Database on **PlanetScale**
-- Creating and sending emails with **React Email** and **Resend**
-- UI Components built using **Radix UI** and **shadcn/ui**
-- Subscriptions using **Stripe**
-- Styled using **Tailwind CSS**
-- Analytics with **PostHog**
-- Error Handling in **Sentry**
-- Validations using **Zod**
-- Written in **TypeScript**
+2. Copiare l'esempio di configurazione:
 
-## Running Locally
+   ```sh
+   cp .env.example .env.local
+   ```
 
-1. Install dependencies using pnpm:
+3. Configurare le variabili principali:
 
-```sh
-pnpm install
-```
+   ```env
+   DATABASE_URL=postgres://...
+   DEV_AUTH_ENABLED=true
+   ```
 
-2. Copy `.env.example` to `.env.local` and update the variables.
+   > In produzione `DEV_AUTH_ENABLED` **deve** essere disattivato. Domani sarà sufficiente fornire un nuovo adapter che legga gli
+   > utenti dal progetto principale.
 
-```sh
-cp .env.example .env.local
-```
+4. Eseguire le migrazioni Prisma:
 
-3. Start the development server:
+   ```sh
+   pnpm prisma migrate dev
+   ```
 
-```sh
-pnpm dev
-```
+5. Popolare il database con un utente e 3 entry di esempio:
 
-## Star History
+   ```sh
+   pnpm prisma db seed
+   ```
 
-<a href="https://www.star-history.com/#subhamBharadwaz/scribbly&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=subhamBharadwaz/scribbly&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=subhamBharadwaz/scribbly&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=subhamBharadwaz/scribbly&type=Date" />
- </picture>
-</a>
+6. Avviare l'applicazione:
 
-## License
+   ```sh
+   pnpm dev
+   ```
 
-Licensed under the [MIT license](https://github.com/subhamBharadwaz/scribbly/blob/main/LICENSE.md).
+   L'interfaccia è disponibile all'URL `/journal`. Le pagine `/auth/dev/signin` e `/auth/dev/signup` sono attive solo quando
+   `DEV_AUTH_ENABLED=true` e permettono di creare utenti di sviluppo.
+
+## Struttura principale
+
+- `prisma/schema.prisma` – definizione dei modelli `DevUser`, `DevSession` e `Entry`
+- `src/lib/auth` – interfaccia `AuthAdapter`, adapter di sviluppo e helper per gestire hash/sessions
+- `src/server/actions/entries.ts` – server actions per CRUD, rate-limit e filtri per `userId`
+- `src/app/journal` – layout protetto, calendario, editor, export JSON/Markdown
+- `src/components/journal` – editor a blocchi e calendario basato su shadcn + React DayPicker
+
+## Dev Auth
+
+L'autenticazione di sviluppo è stata pensata per essere facilmente sostituibile:
+
+- `AuthAdapter` espone `getCurrentUserId`, `signIn`, `signOut`, `createUser`
+- `DevAuthAdapter` memorizza utenti e sessioni nel database e usa cookie `HttpOnly`
+- le funzioni applicative leggono l'utente solo tramite `getCurrentUserIdFromAdapter`
+
+Per passare all'auth del sito principale è sufficiente implementare un nuovo adapter e disattivare quello di sviluppo.
+
+## Calendario & editor
+
+- `<JournalCalendar />` mostra le entry con vista giorno/settimana/mese/intervallo, filtri per tag e shortcut “Oggi / Questa
+  settimana / Questo mese”
+- `<JournalEditor />` utilizza Editor.js per i blocchi, consente di impostare titolo, mood, tag (separati da virgola) e data
+  dell'entry
+- tutte le operazioni sono filtrate per `userId` e aggiornano la UI tramite `revalidatePath`
+
+## Export
+
+Sono disponibili due route protette:
+
+- `/journal/export.json` – esporta tutte le entry dell'utente in formato JSON
+- `/journal/export.md` – esporta in Markdown convertendo i blocchi di Editor.js (heading, paragrafi, liste, checklist, quote,
+  immagini)
+
+## Note
+
+- Le password degli utenti di sviluppo sono gestite tramite un hash sicuro basato su `crypto.scrypt`, pensato per essere
+  sostituito da un'implementazione bcrypt production-ready quando verrà integrato l'adapter del sito principale.
+- Tutto il codice superfluo legato a Clerk, Stripe, Resend e marketing è stato rimosso.
