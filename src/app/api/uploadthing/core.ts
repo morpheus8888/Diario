@@ -1,17 +1,15 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next"
 
-import { getUserByClerkId } from "@/lib/auth"
+import { getCurrentUserIdFromAdapter } from "@/lib/auth"
 
 const f = createUploadthing()
 
 export const ourFileRouter = {
   imageUploader: f({ image: { maxFileSize: "1MB" } })
-    .middleware(async (req) => {
-      const user = await getUserByClerkId()
+    .middleware(async () => {
+      const userId = await getCurrentUserIdFromAdapter()
 
-      if (!user) throw new Error("Unauthorized")
-
-      return { userId: user.id }
+      return { userId }
     })
     .onUploadComplete(async ({ metadata, file }) => {}),
 } satisfies FileRouter
